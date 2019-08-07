@@ -1,0 +1,46 @@
+sudo su
+apt-get update && apt-get upgrade
+sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make
+git clone --recursive https://github.com/seemoo-lab/nexmon
+cd nexmon/buildtools/isl-0.10
+./configure
+make
+make install
+ln -s /usr/local/lib/libisl.so /usr/lib/arm-linux-gnueabihf/libisl.so.10
+cd /home/pi/nexmon/buildtools/mpfr-3.1.4
+./configure
+make
+make install
+ln -s /usr/local/lib/libmpfr.so /usr/lib/arm-linux-gnueabihf/libmpfr.so.4
+cd /home/pi/nexmon
+source setup_env.sh
+make
+#----------------
+# PI 3
+# cd /home/pi/nexmon/patches/bcm43430a1/7_45_41_46/nexmon
+#-------------------
+# PI 4
+cd /home/pi/nexmon/patches/bcm43455c0/7_45_154/nexmon
+make
+make backup-firmware
+make install-firmware
+# OR
+# cd /home/pi/nexmon/patches/bcm43455c0/7_45_189/nexmon
+# make
+# make backup-firmware
+# make install-firmware
+cd /home/pi/nexmon/utilities/nexutil
+make
+make install
+apt-get remove wpasupplicant
+nexutil -m0
+iw phy `iw dev wlan0 info | gawk '/wiphy/ {printf "phy" $2}'` interface add mon0 type monitor
+ifconfig mon0 up
+# RPI3 load the modified driver after reboot:
+modinfo brcmfmac
+# the first line should be the full path
+# Backup the original driver: mv "<PATH TO THE DRIVER>/brcmfmac.ko" "<PATH TO THE DRIVER>/ brcmfmac.ko.orig"
+# Copy the modified driver (Kernel 4.9): cp /home/pi/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac_kernel49/brcmfmac.ko "<PATH TO THE DRIVER>/"
+# Copy the modified driver (Kernel 4.14): cp /home/pi/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac_4.14.y-nexmon/brcmfmac.ko "<PATH TO THE DRIVER>/"
+# Probe all modules and generate new dependency: depmod -a
+# The new driver should be loaded by default after reboot: reboot  * Note: It is possible to connect to an access point or run your own access point in  parallel to the monitor mode interface on the wlan0 interface. 

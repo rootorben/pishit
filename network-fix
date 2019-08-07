@@ -1,0 +1,39 @@
+### /etc/network/interfaces
+#DHCP
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet dhcp
+#----------------------------
+#STATIC
+auto eth0
+iface eth0 inet static
+address 192.168.178.22
+netmask 255.255.255.0
+broadcast 192.168.178.255
+network 192.168.178.0
+gateway 192.168.178.1
+#----------------------------
+iface wlan0 inet dhcp
+wpa-ssid MyNetWork
+wpa-psk plaintextsecret
+
+#------------------------------------------------------------
+
+# Static Configuration 
+# /etc/systemd/network/50-static.network
+Name=enp2s0
+Address=192.168.0.15/24
+Gateway=192.168.0.1
+DNS=8.8.8.8
+
+# DHCP-based Configuration
+# /etc/systemd/network/80-dhcp.network
+Name=de*
+DHCP=yes
+
+sudo systemctl enable systemd-networkd
+sudo systemctl enable systemd-resolved
+sudo systemctl start systemd-networkd
+sudo systemctl start systemd-resolved
+sudo ln -sf /run/system/resolve/resolv.conf /etc/resolv.conf
